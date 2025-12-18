@@ -48,9 +48,6 @@ cp .env.example .env
 php artisan key:generate
 ```
 ```sh
-npm install && npm run dev
-```
-```sh
 php artisan migrate
 ```
 **Note : Buat Seeder**
