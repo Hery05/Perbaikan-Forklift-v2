@@ -27,7 +27,7 @@ Aplikasi ini dibangun menggunakan Laravel 9 +  Laravel UI Bootstrap + AdminLTE
 - Node.Js
 - PHP 8.1.25 or later
 - Visual Studio Code
-- Laravel 8
+- Laravel 9
 
 
 #### Install :
