@@ -17,7 +17,7 @@
   
 ## Tech
 
-Aplikasi ini dibangun menggunakan Laravel 9 +  Laravel UI Bootstrap + AdminLTE
+Aplikasi ini dibangun menggunakan Laravel 9 +  Laravel Auth UI Bootstrap + AdminLTE
 
 
 ## Requirment :
