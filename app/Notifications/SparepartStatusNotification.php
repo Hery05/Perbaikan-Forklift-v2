@@ -18,7 +18,7 @@ class SparepartStatusNotification extends Notification
 
     public function via($notifiable)
     {
-        return ['database','mail'];
+        return ['database', 'mail'];
     }
 
     public function toMail($notifiable)
@@ -32,8 +32,8 @@ class SparepartStatusNotification extends Notification
     public function toArray($notifiable)
     {
         return [
-            'message' => $this->message,
-            'url' => $this->url
+            'message' => 'Sparepart sudah tersedia / diproses',
+            'url' => '/tasks'
         ];
     }
 }

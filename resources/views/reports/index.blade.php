@@ -2,11 +2,11 @@
 
 @section('content')
 <div class="card shadow-sm">
-    <div class="card-header bg-white">
-        <h5 class="mb-0">
+    <div class="card-header">
+        <h3 class="card-title">
             <i class="fas fa-file-alt text-primary mr-1"></i>
             Laporan Perbaikan Forklift
-        </h5>
+        </h3>
     </div>
 
     <div class="card-body">

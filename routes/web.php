@@ -5,6 +5,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MasterSparepartController;
 use App\Http\Controllers\SparepartController;
 use App\Http\Controllers\RepairRequestController;
 use App\Http\Controllers\TechnicianTaskController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\TechnicianTaskController;
 | AUTH (WAJIB DI LUAR auth middleware)
 |--------------------------------------------------------------------------
 */
+
 Route::get('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/login', [AuthController::class, 'authenticate']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
@@ -23,7 +25,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
 | ROOT
 |--------------------------------------------------------------------------
 */
-Route::get('/', fn () => redirect('/login'));
+Route::get('/', fn() => redirect('/login'));
 
 /*
 |--------------------------------------------------------------------------
@@ -65,10 +67,9 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin')->group(function () {
 
         Route::resource('users', UserController::class)->except(['show']);
-        
+
         Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
         Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-
     });
 
     /*
@@ -117,7 +118,7 @@ Route::middleware('auth')->group(function () {
                 ->name('finish');
 
             Route::post('/{id}/finish1', [TechnicianTaskController::class, 'finish1'])
-                ->name('finish1');    
+                ->name('finish1');
 
             Route::get('/{id}/requestSparepartForm', [TechnicianTaskController::class, 'requestSparepartForm'])
                 ->name('requestSparepartForm');
@@ -127,7 +128,7 @@ Route::middleware('auth')->group(function () {
 
             Route::post('/{id}/sparepart', [TechnicianTaskController::class, 'storeSparepart'])
                 ->name('sparepart.store');
-            
+
             // gudang
             Route::post('/sparepart/{id}/approve', [SparepartController::class, 'approve'])
                 ->name('sparepart.approve');
@@ -149,18 +150,21 @@ Route::middleware('auth')->group(function () {
         Route::post('/spareparts/{id}/{status}', [SparepartController::class, 'updateStatus'])
             ->name('spareparts.updateStatus');
     });
+    
+    //Master Sparepart
+    Route::resource('spareparts', MasterSparepartController::class)
+    ->middleware('auth');
 
-     /*
+    /*
     |--------------------------------------------------------------------------
     | REPORT
     |--------------------------------------------------------------------------
     */
     Route::get('/reports', [ReportController::class, 'index'])
-    ->middleware('auth')
-    ->name('reports.index');
+        ->middleware('auth')
+        ->name('reports.index');
 
     Route::get('/reports/pdf', [ReportController::class, 'pdf'])
-    ->middleware('auth')
-    ->name('reports.pdf');
-
+        ->middleware('auth')
+        ->name('reports.pdf');
 });
