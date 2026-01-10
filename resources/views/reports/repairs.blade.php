@@ -17,6 +17,27 @@
         </div>
 
         <div class="card-body">
+            <div class="mb-3 position-relative">
+                <form method="GET" action="{{ route('reports.repairs') }}" class="mb-3">
+                    <div class="input-group">
+                        <input type="text" name="q" value="{{ request('q') }}" class="form-control"
+                            placeholder="Cari forklift, pelapor, status...">
+
+                        <div class="input-group-append">
+                            <button class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+
+                            @if (request('q'))
+                                <a href="{{ route('reports.repairs') }}" class="btn btn-secondary">
+                                    Reset
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                </form>
+
+            </div>
 
             {{-- TABLE --}}
             <div class="table-responsive">
@@ -86,9 +107,8 @@
 
             {{-- PAGINATION --}}
             <div class="mt-2">
-                {{ $repairs->links() }}
+                {{ $repairs->appends(request()->query())->links() }}
             </div>
-
         </div>
     </div>
 
