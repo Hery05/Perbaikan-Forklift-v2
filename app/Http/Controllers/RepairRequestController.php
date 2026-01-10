@@ -19,7 +19,7 @@ class RepairRequestController extends Controller
      */
     public function index()
     {
-        $user = auth()->user();
+        // $user = auth()->user();
 
         // $requests = RepairRequest::with(['user','technician'])
         //     ->when($user->role !== 'coordinator', function ($q) use ($user) {
