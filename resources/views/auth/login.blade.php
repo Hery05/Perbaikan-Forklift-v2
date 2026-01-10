@@ -13,8 +13,7 @@
 
 <div class="login-box">
     <div class="login-logo">
-        <b>SIM</b>PF
-        <p class="text-muted text-sm mb-0">Sistem Informasi Perbaikan Forklift</p>
+        <b>Selamat Datang</b>
     </div>
 
     <div class="card card-outline card-primary">
