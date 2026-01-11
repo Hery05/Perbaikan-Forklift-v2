@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\RepairRequest;
 use App\Models\RepairLog;
 use App\Models\SparepartRequest;
-use Illuminate\Http\Request;
+use App\Models\Sparepart;
 use App\Models\User;
 use App\Notifications\TaskNotification;
 
@@ -31,13 +33,10 @@ class TechnicianTaskController extends Controller
     /* ================= DETAIL ================= */
     public function show($id)
     {
-        $task = RepairRequest::with(['forklift','user','sparepartRequests'])
+        $task = RepairRequest::with(['forklift', 'user', 'technician', 'sparepartRequests.sparepart'])
             ->findOrFail($id);
 
-        // keamanan
-        if ($task->technician_id !== auth()->id()) {
-            abort(403);
-        }
+        if ($task->technician_id !== auth()->id()) abort(403);
 
         return view('technician.detail', compact('task'));
     }
@@ -46,15 +45,8 @@ class TechnicianTaskController extends Controller
     public function start($id)
     {
         $task = RepairRequest::findOrFail($id);
-
-        if ($task->technician_id !== auth()->id()) {
-            abort(403);
-        }
-
-        // hanya boleh dari DITUGASKAN
-        if ($task->status !== 'DITUGASKAN') {
-            return back()->with('error','Status tidak valid');
-        }
+        if ($task->technician_id !== auth()->id()) abort(403);
+        if ($task->status !== 'DITUGASKAN') return back()->with('error', 'Status tidak valid');
 
         $task->update([
             'status'   => 'SEDANG_DIKERJAKAN',
@@ -68,24 +60,18 @@ class TechnicianTaskController extends Controller
             'keterangan' => 'Teknisi mulai mengerjakan'
         ]);
 
-        return back()->with('success','Perbaikan dimulai');
+        return back()->with('success', 'Perbaikan dimulai');
     }
 
     /* ================= SELESAIKAN ================= */
     public function finish(Request $request, $id)
     {
-        $request->validate([
-            'hasil_perbaikan' => 'required|string'
-        ]);
+        $request->validate(['hasil_perbaikan' => 'required|string']);
 
         $task = RepairRequest::findOrFail($id);
-
-        if ($task->technician_id !== auth()->id()) {
-            abort(403);
-        }
-
-        if ($task->status !== 'SEDANG_DIKERJAKAN') {
-            return back()->with('error','Task belum bisa diselesaikan');
+        if ($task->technician_id !== auth()->id()) abort(403);
+        if (!in_array($task->status, ['SEDANG_DIKERJAKAN', 'SPAREPART_TERSEDIA'])) {
+            return back()->with('error', 'Task belum bisa diselesaikan');
         }
 
         $task->update([
@@ -101,66 +87,28 @@ class TechnicianTaskController extends Controller
             'keterangan' => 'Perbaikan diselesaikan'
         ]);
 
-        return redirect()
-            ->route('tasks.show', $task->id)
-            ->with('success','Perbaikan berhasil diselesaikan');
-    }
-
-     public function finish1(Request $request, $id)
-    {
-        $request->validate([
-            'hasil_perbaikan' => 'required|string'
-        ]);
-
-        $task = RepairRequest::findOrFail($id);
-
-        if ($task->technician_id !== auth()->id()) {
-            abort(403);
-        }
-
-        if ($task->status !== 'SPAREPART_TERSEDIA') {
-            return back()->with('error','Task belum bisa diselesaikan');
-        }
-
-        $task->update([
-            'status'          => 'SELESAI',
-            'durasi_menit'    => $request->durasi_menit,
-            'hasil_perbaikan' => $request->hasil_perbaikan
-        ]);
-
-        RepairLog::create([
-            'repair_request_id' => $task->id,
-            'user_id' => auth()->id(),
-            'status' => 'SELESAI',
-            'keterangan' => 'Perbaikan diselesaikan'
-        ]);
-
-        return redirect()
-            ->route('tasks.show', $task->id)
-            ->with('success','Perbaikan berhasil diselesaikan');
+        return redirect()->route('tasks.show', $task->id)
+            ->with('success', 'Perbaikan berhasil diselesaikan');
     }
 
     /* ================= FORM SPAREPART ================= */
     public function requestSparepartForm($id)
     {
-        $task = RepairRequest::findOrFail($id);
+        $task = RepairRequest::with(['forklift', 'technician'])->findOrFail($id);
 
-        if ($task->technician_id !== auth()->id()) {
-            abort(403);
-        }
+        if ($task->technician_id !== auth()->id()) abort(403);
+        if ($task->status !== 'SEDANG_DIKERJAKAN') return back()->with('error', 'Tidak bisa ajukan sparepart');
 
-        if ($task->status !== 'SEDANG_DIKERJAKAN') {
-            return back()->with('error','Tidak bisa ajukan sparepart');
-        }
+        $spareparts = Sparepart::where('stok', '>', 0)->get();
 
-        return view('technician.sparepart', compact('task'));
+        return view('technician.sparepart', compact('task', 'spareparts'));
     }
 
     /* ================= SIMPAN SPAREPART ================= */
     public function storeSparepart(Request $request, $id)
     {
-         $request->validate([
-            'nama_sparepart' => 'required',
+        $request->validate([
+            'sparepart_id' => 'required',
             'jumlah' => 'required|integer|min:1'
         ]);
 
@@ -171,46 +119,44 @@ class TechnicianTaskController extends Controller
         }
 
         if ($task->status !== 'SEDANG_DIKERJAKAN') {
-            return back()->with('error','Status tidak valid');
+            return back()->with('error', 'Status tidak valid untuk request sparepart');
         }
 
-        SparepartRequest::create([
-            'repair_request_id' => $task->id,
-            'technician_id' => auth()->id(),
-            'forklift_id' => $task->forklift_id,
-            'nama_sparepart' => $request->nama_sparepart,
-            'jumlah' => $request->jumlah,
-            'status' => 'DIPROSES'
-        ]);
+        DB::transaction(function () use ($task, $request) {
+            // Buat permintaan sparepart
+            $sparepartRequest = SparepartRequest::create([
+                'repair_request_id' => $task->id,
+                'technician_id'    => auth()->id(),
+                'forklift_id'      => $task->forklift_id,
+                'sparepart_id'     => $request->sparepart_id,
+                'jumlah'           => $request->jumlah,
+                'status'           => 'DIPROSES'
+            ]);
 
-        $task->update([
-            'status' => 'MENUNGGU_SPAREPART'
-        ]);
+            // Update status task menjadi menunggu sparepart
+            $task->update([
+                'status' => 'MENUNGGU_SPAREPART'
+            ]);
 
-        RepairLog::create([
-            'repair_request_id' => $task->id,
-            'user_id' => auth()->id(),
-            'status' => 'MENUNGGU_SPAREPART',
-            'keterangan' => 'Menunggu sparepart'
-        ]);
+            // Log repair
+            RepairLog::create([
+                'repair_request_id' => $task->id,
+                'user_id'           => auth()->id(),
+                'status'            => 'MENUNGGU_SPAREPART',
+                'keterangan'        => 'Menunggu sparepart'
+            ]);
 
-         // NOTIFIKASI KE GUDANG (INI YANG HILANG!)
-    $gudangUsers = User::where('role', 'sparepart')->get();
+            // Notifikasi ke user sparepart/gudang
+            $gudangUsers = User::where('role', 'sparepart')->get();
+            foreach ($gudangUsers as $user) {
+                $user->notify(new TaskNotification(
+                    'Permintaan sparepart baru untuk forklift ' . $task->forklift->kode_forklift,
+                    '/sparepart/requests'
+                ));
+            }
+        });
 
-    foreach ($gudangUsers as $user) {
-        $user->notify(new TaskNotification(
-            'Permintaan sparepart baru untuk forklift '.$task->forklift->kode_forklift,
-            '/sparepart/requests'
-        ));
+        return redirect()->route('tasks.show', $task->id)
+            ->with('warning', 'Permintaan sparepart dikirim ke gudang');
     }
-
-    return redirect()
-        ->route('tasks.show', $task->id)
-        ->with('warning','Permintaan sparepart dikirim ke gudang');
-
-        // return redirect()
-        //     ->route('tasks.show', $task->id)
-        //     ->with('warning','Menunggu konfirmasi sparepart');
-    }
-
 }

@@ -9,16 +9,47 @@ use App\Notifications\SparepartStatusNotification;
 
 class SparepartController extends Controller
 {
+
+    public function request(Request $request)
+    {
+        $keyword = $request->q;
+
+        $requests = SparepartRequest::with([
+            'repairRequest',
+            'repairRequest.forklift',
+            'repairRequest.technician'
+        ])
+            ->when($keyword, function ($query) use ($keyword) {
+                $query->where(function ($q) use ($keyword) {
+                    $q->where('sparepart_id', 'LIKE', "%$keyword%")
+                        ->orWhereHas('repairRequest', function ($r) use ($keyword) {
+                            $r->where('deskripsi_awal', 'LIKE', "%$keyword%")
+                                ->orWhereHas('forklift', function ($f) use ($keyword) {
+                                    $f->where('kode_forklift', 'LIKE', "%$keyword%")
+                                        ->orWhere('merk', 'LIKE', "%$keyword%")
+                                        ->orWhere('tipe', 'LIKE', "%$keyword%");
+                                });
+                        });
+                });
+            })
+            ->latest()
+            ->paginate(10);
+
+        $requests->appends(['q' => $keyword]); // tetap pertahankan query saat paginate
+
+        return view('sparepart.request', compact('requests', 'keyword'));
+    }
+
     /**
      * LIST PERMINTAAN SPAREPART (ROLE: SPAREPART)
      */
     public function index()
     {
         $requests = SparepartRequest::with([
-                'repairRequest',
-                'repairRequest.forklift',
-                'repairRequest.technician'
-            ])
+            'repairRequest',
+            'repairRequest.forklift',
+            'repairRequest.technician'
+        ])
             ->latest()
             ->paginate(10);
 
@@ -65,7 +96,7 @@ class SparepartController extends Controller
             // fallback jika belum ada hasil
             $repair->update([
                 'status' => 'SELESAI',
-                'hasil_perbaikan' => $repair->hasil_perbaikan 
+                'hasil_perbaikan' => $repair->hasil_perbaikan
                     ?? 'Perbaikan tidak dapat dilanjutkan karena sparepart tidak tersedia',
                 'durasi_menit' => $repair->durasi_menit ?? 0
             ]);
@@ -76,7 +107,7 @@ class SparepartController extends Controller
         RepairLog::create([
             'repair_request_id' => $sparepart->repair_request_id,
             'user_id' => auth()->id(),
-            'status' => 'SPAREPART_'.$status,
+            'status' => 'SPAREPART_' . $status,
             'keterangan' => $status === 'DITOLAK'
                 ? 'Sparepart ditolak, perbaikan dihentikan'
                 : 'Sparepart disetujui'
@@ -100,7 +131,7 @@ class SparepartController extends Controller
                 $sp->nama_sparepart
             ));
 
-        return back()->with('success','Sparepart tersedia');
+        return back()->with('success', 'Sparepart tersedia');
     }
 
     public function reject($id)
@@ -116,7 +147,6 @@ class SparepartController extends Controller
                 $sp->nama_sparepart
             ));
 
-        return back()->with('warning','Sparepart tidak tersedia');
+        return back()->with('warning', 'Sparepart tidak tersedia');
     }
-
 }

@@ -129,12 +129,12 @@ Route::middleware('auth')->group(function () {
             Route::post('/{id}/sparepart', [TechnicianTaskController::class, 'storeSparepart'])
                 ->name('sparepart.store');
 
-            // gudang
-            Route::post('/sparepart/{id}/approve', [SparepartController::class, 'approve'])
-                ->name('sparepart.approve');
+        // gudang
+        Route::post('/sparepart/{id}/approve', [SparepartController::class, 'approve'])
+            ->name('sparepart.approve');
 
-            Route::post('/sparepart/{id}/reject', [SparepartController::class, 'reject'])
-                ->name('sparepart.reject');
+        Route::post('/sparepart/{id}/reject', [SparepartController::class, 'reject'])
+            ->name('sparepart.reject');
         });
 
     /*
@@ -143,18 +143,18 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware('role:sparepart')->group(function () {
-
-        Route::get('/spareparts', [SparepartController::class, 'index'])
-            ->name('spareparts.index');
+        // Halaman permintaan sparepart
+        Route::get('sparepart/request', [SparepartController::class, 'request'])
+            ->name('sparepart.request');
 
         Route::post('/spareparts/{id}/{status}', [SparepartController::class, 'updateStatus'])
             ->name('spareparts.updateStatus');
     });
-    
-    //Master Sparepart
-    Route::resource('spareparts', MasterSparepartController::class)
-    ->middleware('auth');
 
+    //Master Sparepart
+    Route::middleware(['auth'])->group(function () {
+        Route::resource('sparepart', MasterSparepartController::class);
+    });
     /*
     |--------------------------------------------------------------------------
     | REPORT

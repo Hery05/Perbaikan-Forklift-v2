@@ -66,7 +66,7 @@
                 <i class="far fa-clock mr-1"></i>
                 <span id="clock"></span>
             </li>
-
+{{-- 
             <li class="nav-item dropdown">
                 <a class="nav-link" data-toggle="dropdown" href="#">
                     <i class="far fa-bell"></i>
@@ -110,7 +110,7 @@
                         Lihat Semua
                     </a>
                 </div>
-            </li>
+            </li> --}}
             <li class="nav-item">
                 <form action="/logout" method="POST">
                     @csrf
@@ -204,7 +204,7 @@
 <script>
     setTimeout(() => {
         $('.alert').alert('close');
-    }, 5000);
+    }, 4000);
 </script>
 
 
