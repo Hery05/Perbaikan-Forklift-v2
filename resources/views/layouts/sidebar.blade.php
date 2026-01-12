@@ -36,16 +36,10 @@
 
             {{-- Permintaan Sparepart --}}
             <li class="nav-item">
-                <a href="{{ route('sparepart.requests') }}"
-                    class="nav-link {{ request()->is('sparepart/requests*') ? 'active' : '' }}">
+                <a href="{{ route('sparepart.request') }}"
+                    class="nav-link {{ request()->routeIs('sparepart.request') ? 'active' : '' }}">
                     <i class="nav-icon fas fa-file-invoice"></i>
                     <p>Permintaan Sparepart</p>
-                    @php
-                        $pendingCount = \App\Models\SparepartRequest::where('status', 'DIPROSES')->count();
-                    @endphp
-                    @if ($pendingCount > 0)
-                        <span class="badge badge-danger right">{{ $pendingCount }}</span>
-                    @endif
                 </a>
             </li>
 

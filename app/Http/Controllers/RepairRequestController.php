@@ -115,6 +115,17 @@ class RepairRequestController extends Controller
             'keterangan'        => 'Permintaan diajukan oleh user'
         ]);
 
+        // // Notifikasi ke koordinaror
+
+        // $forklift_id = User::find($request->forklift_id);
+
+        // $forklift_id->notify(
+        //     new TaskNotification(
+        //         'Anda mendapat request permintaan perbaikan forklift',
+        //         url('/tasks/' . $repair->id)
+        //     )
+        // );
+
         return redirect('/reports/repairs')
             ->with('success', 'Permintaan perbaikan berhasil diajukan');
     }

@@ -11,13 +11,13 @@ class TaskNotification extends Notification
     use Queueable;
 
     public function __construct(
-        public string $message,
-        public string $url
+        public string $message
     ) {}
 
     public function via($notifiable)
     {
-        return ['database', 'mail']; // PENTING
+        // database wajib, mail opsional
+        return ['database', 'mail'];
     }
 
     public function toMail($notifiable)
@@ -26,15 +26,15 @@ class TaskNotification extends Notification
             ->subject('Notifikasi Sistem Perbaikan Forklift')
             ->greeting('Halo '.$notifiable->name)
             ->line($this->message)
-            ->action('Buka Aplikasi', url($this->url))
-            ->line('Terima kasih.');
+            ->action('Login ke Aplikasi', url('/login'))
+            ->line('Silakan login untuk melihat detail notifikasi.');
     }
 
     public function toArray($notifiable)
     {
         return [
             'message' => $this->message,
-            'url'     => $this->url
+            'url'     => '/login'
         ];
     }
 }
