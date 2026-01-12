@@ -71,6 +71,26 @@ public function run(){
 php artisan db:seed --class=UsersSeeder
 ```
 
+## Preview Demo Aplikasi
+
+1. Halaman Login
+
+<img width="1917" height="790" alt="Image" src="https://github.com/user-attachments/assets/00f519ca-f101-4f9a-9b76-d018b24c0b20" />
+
+2. Dashboard Admin
+
+<img width="1911" height="807" alt="Image" src="https://github.com/user-attachments/assets/08f77bf4-e8bf-463a-9602-e72c0c64dc06" />
+
+3. Dashboard Sparepart
+   
+<img width="1917" height="779" alt="Image" src="https://github.com/user-attachments/assets/e3c2620c-c93f-4911-924a-1632becb3ca4" />
+
+4. Form Sparepart Request
+
+<img width="1919" height="821" alt="Image" src="https://github.com/user-attachments/assets/25cd4a67-7106-4f74-bfd9-5050a2106189" />
+
+6. Dan Lain-lain  
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
 
 <p align="center">
